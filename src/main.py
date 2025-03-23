@@ -1,10 +1,11 @@
 import flet as ft
 from login import login_page
 from home import home_page
-
+from deviceList import devices_list_page
+from deviceData import device_data_page
 
 def main(page: ft.Page):
-    """Main function to render the Flet UI."""
+    """Main function to render the Flet UI.."""
     page.title = "Powerpay Africa"
 
 
@@ -12,6 +13,8 @@ def main(page: ft.Page):
         selected = e.control.selected_index
         if selected == 0:
             page.go("/")
+        elif selected ==1:
+            page.go("/devices")
         elif selected == 2:
             page.go("/logout")
 
@@ -39,7 +42,7 @@ def main(page: ft.Page):
             app_bar = ft.AppBar(
                 title=ft.Text("Powerpay Africa"),
                 center_title=True,
-                bgcolor="#0ead00",
+                bgcolor=ft.Colors.GREEN,
                 leading=menu_icon_btn,
             )
 
@@ -63,6 +66,13 @@ def main(page: ft.Page):
         elif page.route == "/logout":
             page.session.clear()
             page.go('/login')
+        elif page.route == "/devices":
+            page.views.append(ft.View("/devices", controls=[devices_list_page(page)],  appbar=app_bar, drawer=drawer))
+        elif page.route.startswith("/device/"):
+            deviceID = page.route.split("/")[-1]
+            print(f"Route: {page.route}")
+            app_bar.title = ft.Text(f"{deviceID} data")
+            page.views.append(ft.View(f"/device/{deviceID}", controls=[device_data_page(page, deviceID)], appbar=app_bar, drawer=drawer))
 
         page.update()
 

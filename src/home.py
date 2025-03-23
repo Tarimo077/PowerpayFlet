@@ -120,7 +120,7 @@ def home_page(page: ft.Page):
                 ft.DataColumn(ft.Text("Runtime (hrs)", size=16, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)),
             ],
             rows=generate_table_cells(top_devices),  # Updated rows
-            heading_row_color="#0ead00",
+            heading_row_color=ft.Colors.GREEN,
             border=ft.border.all(1, ft.colors.GREY_300),
             column_spacing=10,
             divider_thickness=1,
@@ -207,7 +207,7 @@ def home_page(page: ft.Page):
                 ft.DataColumn(ft.Text("Runtime (hrs)", size=16, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)),
             ],
             rows=arr_cell,
-            heading_row_color="#0ead00",
+            heading_row_color=ft.Colors.GREEN,
             border=ft.border.all(1, ft.colors.GREY_300),
             column_spacing=10,
             divider_thickness=1,
