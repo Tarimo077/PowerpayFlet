@@ -2,6 +2,8 @@ import flet as ft
 import requests
 from requests.auth import HTTPBasicAuth
 import datetime
+import pandas as pd
+import time
 
 # Mapping for dropdown values to minutes
 value_map = {
@@ -36,86 +38,128 @@ def fetch_data_index(deviceID, endpoint, time_range):
 
 
 def device_data_page(page: ft.Page, deviceID):
-    data = fetch_data_index(deviceID, "deviceDataDjangoo", "180000")
+    data = fetch_data_index(deviceID, "deviceDataDjangoo", "1800000")
     if not data or (data["runtime"] == 0 and not data["deviceMealCounts"] and not data["rawData"]):
         return ft.Text("No data available.", size=16, color=ft.colors.RED)
 
     # Function to format timestamps
     def format_timestamp(timestamp):
         return datetime.datetime.fromisoformat(timestamp.replace("Z", "+00:00")).strftime("%Y-%m-%d %H:%M:%S")
+    
 
     # Function to generate a DataTable
     def generate_meal_table(meal_durations):
-        columns = [
-            ft.DataColumn(ft.Text("Start Time", weight=ft.FontWeight.BOLD, size=14)),
-            ft.DataColumn(ft.Text("Duration", weight=ft.FontWeight.BOLD, size=14)),
-            ft.DataColumn(ft.Text("End Time", weight=ft.FontWeight.BOLD, size=14)),
-            ft.DataColumn(ft.Text("Total kWh", weight=ft.FontWeight.BOLD, size=14)),
-            ft.DataColumn(ft.Text("Cost (Ksh)", weight=ft.FontWeight.BOLD, size=14)),
-            ft.DataColumn(ft.Text("CO₂ Emissions", weight=ft.FontWeight.BOLD, size=14)),
-        ]
+        meal_durations = reversed(meal_durations)
+        df = pd.DataFrame(meal_durations)
 
-        if not meal_durations:
-            rows = [
-                ft.DataRow(
-                    cells=[
-                        ft.DataCell(ft.Text("No Meal Data", text_align=ft.TextAlign.CENTER, size=14, weight=ft.FontWeight.BOLD)),
-                        *[ft.DataCell(ft.Text("-", text_align=ft.TextAlign.CENTER, size=14)) for _ in range(5)],
-                    ],
-                    color=ft.colors.GREY_100,
-                )
-            ]
+        if df.empty:
+            df = pd.DataFrame([{"Start Time": "No Meal Data", "Duration": "-", "End Time": "-", "Total kWh": "-"}])
         else:
-            rows = [
-                ft.DataRow(
-                    cells=[
-                        ft.DataCell(ft.Text(format_timestamp(meal["startTime"]), text_align=ft.TextAlign.CENTER, size=14, weight=ft.FontWeight.BOLD)),
-                        ft.DataCell(ft.Text(f"{round(meal['mealDuration'] / 60, 1)} min", text_align=ft.TextAlign.CENTER, size=14)),
-                        ft.DataCell(ft.Text(format_timestamp(meal["endTime"]), text_align=ft.TextAlign.CENTER, size=14)),
-                        ft.DataCell(ft.Text(f"{meal['totalKwh']:.2f} kWh", text_align=ft.TextAlign.CENTER, size=14)),
-                        ft.DataCell(ft.Text(f"KSH {round(meal['totalKwh'] * 23, 1)}", text_align=ft.TextAlign.CENTER, size=14)),
-                        ft.DataCell(ft.Text(f"{round(meal['totalKwh'] * 0.4999 * 0.28, 2)} kg CO₂", text_align=ft.TextAlign.CENTER, size=14)),
-                    ],
-                    color=ft.colors.with_opacity(0.1, ft.colors.BLUE_100 if i % 2 == 0 else ft.colors.GREY_100),
-                )
-                for i, meal in enumerate(meal_durations)
-            ]
+            df["From"] = df["startTime"].apply(format_timestamp)
+            df["Duration"] = df["mealDuration"].apply(lambda x: f"{round(x / 60, 1)} min")
+            df["To"] = df["endTime"].apply(format_timestamp)
+            df["Energy"] = df["totalKwh"].apply(lambda x: f"{x:.2f} kWh")
 
-        return ft.Container(content=ft.DataTable(
-            columns=columns,
-            rows=rows,
-            heading_row_color=ft.Colors.GREEN,
+            df = df[["From", "Duration", "To", "Energy"]]
+
+        rows_per_page = 10
+        total_rows = len(df)
+        total_pages = (total_rows // rows_per_page) + (1 if total_rows % rows_per_page > 0 else 0)
+        current_page = ft.Ref()  # Correct
+        current_page.value = 0   # Set initial value
+
+        meal_table = ft.DataTable(
+            columns=[ft.DataColumn(ft.Text(col)) for col in df.columns],
+            rows=[],
             border=ft.border.all(1, ft.colors.GREY_300),
-            column_spacing=10,
-            divider_thickness=1,
-            expand=True,
-        ),
-        width=page.width
+            heading_row_color=ft.colors.GREEN,
+            column_spacing=5,
+            divider_thickness=1, 
+            expand=True
         )
 
+        page_text = ft.Text(f"Page {current_page.value + 1} of {total_pages}")
+
+        def update_table():
+            start_idx = current_page.value * rows_per_page
+            end_idx = start_idx + rows_per_page
+            meal_table.rows = [
+                ft.DataRow(cells=[
+                    ft.DataCell(ft.Text(str(df.iloc[i, j]))) for j in range(len(df.columns))
+                ]) for i in range(start_idx, min(end_idx, total_rows))
+            ]
+            page_text.value = f"Page {current_page.value + 1} of {total_pages}"
+            
+            # Show/Hide buttons dynamically
+            prev_button.visible = current_page.value > 0
+            next_button.visible = current_page.value < total_pages - 1
+            
+            page.update()
+
+        def go_to_next_page(e):
+            if current_page.value < total_pages - 1:
+                current_page.value += 1
+                update_table()
+
+        def go_to_prev_page(e):
+            if current_page.value > 0:
+                current_page.value -= 1
+                update_table()
+
+        # Define buttons with visibility control
+        prev_button = ft.IconButton(ft.icons.SKIP_PREVIOUS_ROUNDED, on_click=go_to_prev_page, visible=False, icon_color=ft.Colors.GREEN)
+        next_button = ft.IconButton(ft.icons.SKIP_NEXT_ROUNDED, on_click=go_to_next_page, visible=total_pages > 1, icon_color=ft.Colors.GREEN)
+
+        pagination_controls = ft.Container(content=ft.Row(
+            [
+                prev_button,
+                page_text,
+                next_button,
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=10
+        ), padding=ft.padding.only(bottom=30))
+
+        update_table()
+
+
+        return ft.Column(
+            [meal_table, pagination_controls],
+            spacing=10
+        )
+
+
     def dropdown_changed(e):
-        """Handle dropdown selection change."""
-        kwh_value.value = "Refreshing..."
-        runtime_value.value = "Refreshing..."
-        energy_cost_value.value = "Refreshing..."
-        emissions_value.value = "Refreshing..."
-        page.update()
+        # Show refreshing state
+        for val in [kwh_value, runtime_value, energy_cost_value, emissions_value]:
+            val.value = "Refreshing..."
+        
+        page.update()  # Update UI once
 
         value = value_map.get(dropdown.value, "9999999")
         new_data = fetch_data_index(deviceID, "deviceDataDjangoo", value)
 
         if not new_data or (new_data["runtime"] == 0 and not new_data["deviceMealCounts"] and not new_data["rawData"]):
-            meal_table.content = ft.Text("No data available.", size=16, color=ft.colors.RED)
+            
+            page.go(f"/nodata/{deviceID}")
         else:
-            totalKwh = new_data["sumKwh"]
-            runtime = new_data["runtime"]
+            # Update values with actual data
+            totalKwh = new_data.get("sumKwh", 0)
+            runtime = new_data.get("runtime", 0)
+            
             kwh_value.value = f"{round(totalKwh, 2)} kWh"
             runtime_value.value = f"{round(runtime, 1)} hours"
             energy_cost_value.value = f"KSH. {round((totalKwh * 23.0), 1)}"
             emissions_value.value = f"{round((totalKwh * 0.4999 * 0.28), 2)} kg CO₂"
-            meal_table.content = generate_meal_table(new_data["mealsWithDurations"])
+            
+            meal_table.controls.clear()
+            if "mealsWithDurations" in new_data:
+                meal_table.controls.append(generate_meal_table(new_data["mealsWithDurations"]))
+            
+            #no_data_text.value = ""  # Hide "No data available" if there is data
 
-        page.update()
+        page.update()  # Perform final UI update
+
 
     dropdown = ft.Dropdown(
         label="Choose Time Range",
@@ -123,6 +167,65 @@ def device_data_page(page: ft.Page, deviceID):
         options=[ft.dropdown.Option(k) for k in value_map.keys()],
         autofocus=False,
         value="All Time",
+        border_color=ft.Colors.GREEN,
+        border_width=2,
+    )
+
+    def confirm_toggle(e):
+        page.close(dlg_confirm)
+        switch_changed(e)
+
+    def cancel_toggle(e):
+        page.close(dlg_confirm)
+        statusSwitch.value = not statusSwitch.value  # Revert to previous state
+        statusSwitch.update()
+
+    def open_confirm_dialog(e):
+        dlg_confirm.content=ft.Text(f"Are you sure you want to {'activate' if statusSwitch.value else 'deactivate'} {deviceID} ?")
+        page.open(dlg_confirm)
+
+
+    def switch_changed(e):
+        try:
+            response = requests.post("https://appliapay.com/changeStatus", json={
+                "selectedDev": deviceID,
+                "status": not statusSwitch.value  # Use current switch value
+            })
+            response_data = response.json()
+
+            if response.status_code == 200:
+                # ✅ Extract updated values from API response
+                new_device_id = response_data.get("selectedDev", deviceID)
+                new_status = response_data.get("status", statusSwitch.value)  # Default to current status
+                
+                switchMessage = f"Turn off {new_device_id}" if new_status else f"Turn On {new_device_id}"
+                statusSwitch.value = new_status
+                statusSwitch.label = switchMessage
+                page.update()
+            else:
+                print("Error:", response_data)
+        except Exception as ex:
+            print("Request failed:", ex)
+
+    # Initialize the switch
+    switchMessage = f"Turn off {deviceID}" if data["status"] else f"Turn On {deviceID}"
+    statusSwitch = ft.Switch(
+        label=switchMessage, 
+        active_color=ft.colors.GREY_300, 
+        active_track_color=ft.Colors.GREEN, 
+        value=data["status"], 
+        label_position=ft.LabelPosition.LEFT,
+        on_change=open_confirm_dialog
+    )
+    dlg_confirm = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Confirm Action"),
+        content=ft.Text(f"Are you sure you want to {'deactivate' if statusSwitch.value else 'activate'} {deviceID} ?"),
+        actions=[
+            ft.TextButton("Yes", on_click=confirm_toggle),
+            ft.TextButton("No", on_click=cancel_toggle),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
     )
 
     totalKwh = data["sumKwh"]
@@ -160,11 +263,12 @@ def device_data_page(page: ft.Page, deviceID):
     meal_table = generate_meal_table(data["mealsWithDurations"])
     
     # Return UI elements instead of modifying page directly
-    return ft.Column(
+    return ft.Container(
+    content=ft.Column(
         [
             # Time range selection dropdown
             ft.Container(dropdown, alignment=ft.alignment.top_right, padding=5),
-            
+            ft.Container(statusSwitch, alignment=ft.alignment.top_right, padding=5),
 
             # Cards in Grid Layout
             ft.GridView(
@@ -179,13 +283,27 @@ def device_data_page(page: ft.Page, deviceID):
                 run_spacing=1,
             ),
 
-            # Styled DataTable
+            # Styled DataTable with Heading
             ft.Container(
-                content=meal_table,
-                padding=5,
-                border_radius=10,
-                expand=True,
-                alignment=ft.alignment.top_center
+            content=ft.Column(
+            [
+                ft.Text("Cooking Events", size=20, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
+                meal_table
+            ],
+                spacing=10,  # Adds spacing between heading and table
+                alignment=ft.MainAxisAlignment.START,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
             ),
-        ], alignment=ft.MainAxisAlignment.START, spacing=5
-    )
+            padding=10,
+            border_radius=5,
+            alignment=ft.alignment.top_center
+            ),
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=5,
+        scroll=ft.ScrollMode.AUTO,
+        expand=True,  # Allows column to take available space and scroll
+    ),
+    expand=True  # Ensures the container also expands to allow scrolling
+)
+

@@ -3,6 +3,7 @@ from login import login_page
 from home import home_page
 from deviceList import devices_list_page
 from deviceData import device_data_page
+from noDeviceDat import no_data_page
 
 def main(page: ft.Page):
     """Main function to render the Flet UI.."""
@@ -70,9 +71,11 @@ def main(page: ft.Page):
             page.views.append(ft.View("/devices", controls=[devices_list_page(page)],  appbar=app_bar, drawer=drawer))
         elif page.route.startswith("/device/"):
             deviceID = page.route.split("/")[-1]
-            print(f"Route: {page.route}")
             app_bar.title = ft.Text(f"{deviceID} data")
             page.views.append(ft.View(f"/device/{deviceID}", controls=[device_data_page(page, deviceID)], appbar=app_bar, drawer=drawer))
+        elif page.route.startswith("/nodata/"):
+            deviceID = page.route.split("/")[-1]
+            page.views.append(ft.View(f"/nodata/{deviceID}", controls=[no_data_page(page, deviceID)]))
 
         page.update()
 

@@ -138,6 +138,8 @@ def home_page(page: ft.Page):
         options=[ft.dropdown.Option(k) for k in value_map.keys()],
         autofocus=False,
         value="All Time",
+        border_color=ft.Colors.GREEN,
+        border_width=2,
     )
 
     # Dynamic Text Elements
