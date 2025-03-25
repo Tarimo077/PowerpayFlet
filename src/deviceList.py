@@ -51,7 +51,7 @@ def devices_list_page(page: ft.Page):
                         ft.Icon(name=ft.Icons.DEVELOPER_BOARD, color=ft.Colors.GREEN, size=24),
                         ft.Text("Device List", size=24, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.START,
                 ),
                 ft.Container(device_list_view, expand=True)  # Enables scrolling
             ],

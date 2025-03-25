@@ -41,20 +41,21 @@ def fetch_and_process_data(devs, range):
     try:
         data = fetch_data_index(endpoint, devs, range)
     except Exception as e:
-        return None, None, None  # Handle API failure gracefully
+        return None, None, None, None  # Handle API failure gracefully
 
     if not data or (data.get("totalkwh") == 0 and not data.get("runtime")):
-        return None, None, None  # Handle empty data
+        return None, None, None, None  # Handle empty data
 
     runtime = data.get("runtime", {})
     if not runtime:  # Handle empty runtime
-        return None, None, None
+        return None, None, None, None
 
     top_devices = sorted(runtime.items(), key=lambda x: x[1], reverse=True)[:3]
     sumRuntime = sum(runtime.values())
     totalKwh = data["totalkwh"]
+    meal_counts = data["deviceMealCounts"]
 
-    return sumRuntime, totalKwh, top_devices
+    return sumRuntime, totalKwh, top_devices, meal_counts
 
 
 def home_page(page: ft.Page):
@@ -87,7 +88,7 @@ def home_page(page: ft.Page):
     page.appbar = ft.AppBar(
                 title=ft.Text("Powerpay Africa"),
                 center_title=True,
-                bgcolor=ft.colors.GREEN,
+                bgcolor=ft.Colors.GREEN,
                 leading=menu_icon_btn,
             )
     page.update()
@@ -97,21 +98,24 @@ def home_page(page: ft.Page):
         runtime_value.value = "Refreshing..."
         energy_cost_value.value = "Refreshing..."
         emissions_value.value = "Refreshing..."
+        meal_count_value.value = "Refreshing..."
         page.update()
         
         value = value_map.get(dropdown.value, "9999999")
-        runtime, totalKwh, top_devices = fetch_and_process_data(devices, value)
+        runtime, totalKwh, top_devices, meal_counts = fetch_and_process_data(devices, value)
 
         if runtime is None or totalKwh is None:
             kwh_value.value = "N/A"
             runtime_value.value = "N/A"
             energy_cost_value.value = "N/A"
             emissions_value.value = "N/A"
+            meal_count_value.value = "N/A"
         else:
             kwh_value.value = f"{round(totalKwh, 2)} kWh"
             runtime_value.value = f"{round(runtime, 1)} hours"
             energy_cost_value.value = f"KSH. {round((totalKwh * 23.0), 1)}"
             emissions_value.value = f"{round((totalKwh * 0.4999 * 0.28), 2)} kg CO₂"
+            meal_count_value.value = f"{sum(meal_count["count"] for meal_count in meal_counts.values())} meals"
 
         # Recreate DataTable with updated rows
         data_table.content = ft.DataTable(
@@ -121,7 +125,7 @@ def home_page(page: ft.Page):
             ],
             rows=generate_table_cells(top_devices),  # Updated rows
             heading_row_color=ft.Colors.GREEN,
-            border=ft.border.all(1, ft.colors.GREY_300),
+            border=ft.border.all(1, ft.Colors.GREY_300),
             column_spacing=10,
             divider_thickness=1,
             expand=True,
@@ -129,7 +133,7 @@ def home_page(page: ft.Page):
         page.update()
 
     # Fetch initial data
-    runtime, totalKwh, top_devices = fetch_and_process_data(devices, "180")
+    runtime, totalKwh, top_devices, meal_counts = fetch_and_process_data(devices, "9999999")
 
     # Dropdown for selecting time range
     dropdown = ft.Dropdown(
@@ -140,6 +144,7 @@ def home_page(page: ft.Page):
         value="All Time",
         border_color=ft.Colors.GREEN,
         border_width=2,
+        menu_height=300
     )
 
     # Dynamic Text Elements
@@ -147,7 +152,8 @@ def home_page(page: ft.Page):
     runtime_value = ft.Text(f"{round(runtime, 1)} hours" if runtime else "N/A", size=18, weight="bold", color="white")
     energy_cost_value = ft.Text(f"KSH. {round((totalKwh * 23.0), 1)}" if totalKwh else "N/A", size=18, weight="bold", color="white")
     emissions_value = ft.Text(f"{round((totalKwh * 0.4999 * 0.28), 2)} kg CO₂" if totalKwh else "N/A", size=18, weight="bold", color="white")
-
+    device_count_value = ft.Text(f"{len(devices)} devices" if devices else "N/A", size=18, weight="bold", color="white")
+    meal_count_value = ft.Text(f"{sum(meal_count["count"] for meal_count in meal_counts.values())} meals" if meal_counts else "N/A", size=18, weight="bold", color="white")
     # Styled Cards with Icons
     def create_card(icon, text, value, color):
         return ft.Card(
@@ -168,10 +174,12 @@ def home_page(page: ft.Page):
             )
         )
 
-    kwh_card = create_card(ft.icons.BOLT, "Total Energy", kwh_value, "#FF5733")
-    runtime_card = create_card(ft.icons.TIMER, "Total Runtime", runtime_value, "#33FF57")
-    energy_cost_card = create_card(ft.icons.ATTACH_MONEY, "Energy Cost", energy_cost_value, "#3380FF")
-    emissions_card = create_card(ft.icons.CLOUD, "CO₂ Emissions", emissions_value, "#FF33A8")
+    kwh_card = create_card(ft.Icons.BOLT, "Total Energy", kwh_value, "#FF5733")
+    runtime_card = create_card(ft.Icons.TIMER, "Total Runtime", runtime_value, "#33FF57")
+    energy_cost_card = create_card(ft.Icons.ATTACH_MONEY, "Energy Cost", energy_cost_value, "#3380FF")
+    emissions_card = create_card(ft.Icons.CLOUD, "CO₂ Emissions", emissions_value, "#FF33A8")
+    device_count_card = create_card(ft.Icons.DEVELOPER_BOARD_ROUNDED, "Total Devices", device_count_value, "#B51BFD")
+    meal_count_card = create_card(ft.Icons.FOOD_BANK_ROUNDED, "Total Meals", meal_count_value, "#900C3F")
 
     # Generate table rows
     def generate_table_cells(devs):
@@ -182,7 +190,7 @@ def home_page(page: ft.Page):
                         ft.DataCell(ft.Text("No Data", text_align=ft.TextAlign.CENTER, size=14, weight=ft.FontWeight.BOLD)),
                         ft.DataCell(ft.Text("-", text_align=ft.TextAlign.CENTER, size=14)),
                     ],
-                    color=ft.colors.GREY_100,
+                    color=ft.Colors.GREY_100,
                 )
             ]
 
@@ -192,7 +200,7 @@ def home_page(page: ft.Page):
                     ft.DataCell(ft.Text(k, text_align=ft.TextAlign.CENTER, size=14, weight=ft.FontWeight.BOLD)),
                     ft.DataCell(ft.Text(f"{round(v, 1)} hrs", text_align=ft.TextAlign.CENTER, size=14)),
                 ],
-                color=ft.colors.with_opacity(0.1, ft.colors.BLUE_100 if i % 2 == 0 else ft.colors.GREY_100),
+                color=ft.Colors.with_opacity(0.1, ft.Colors.BLUE_100 if i % 2 == 0 else ft.Colors.GREY_100),
             )
             for i, (k, v) in enumerate(devs)
         ]
@@ -210,7 +218,7 @@ def home_page(page: ft.Page):
             ],
             rows=arr_cell,
             heading_row_color=ft.Colors.GREEN,
-            border=ft.border.all(1, ft.colors.GREY_300),
+            border=ft.border.all(1, ft.Colors.GREY_300),
             column_spacing=10,
             divider_thickness=1,
             expand=True,
@@ -219,31 +227,41 @@ def home_page(page: ft.Page):
         )
 
     # Return UI elements instead of modifying page directly
-    return ft.Column(
-        [
+    return ft.Container(
+        content=ft.Column(
+            [
             # Time range selection dropdown
-            ft.Container(dropdown, alignment=ft.alignment.top_right, padding=5),
-            
+                ft.Container(dropdown, alignment=ft.alignment.top_right, padding=5),
 
             # Cards in Grid Layout
-            ft.GridView(
-                [
-                    kwh_card,
-                    runtime_card,
-                    energy_cost_card,
-                    emissions_card,
-                ],
-                runs_count=2,
-                spacing=1,
-                run_spacing=1,
-            ),
+                ft.GridView(
+                    [
+                        device_count_card,
+                        meal_count_card,
+                        kwh_card,
+                        runtime_card,
+                        energy_cost_card,
+                        emissions_card,
+                    ],
+                    runs_count=2,
+                    spacing=1,
+                    run_spacing=1,
+                ),
+                ft.Container(
+                    content=ft.Text("MOST ACTIVE DEVICES", size=18, text_align=ft.TextAlign.CENTER),
+                    alignment=ft.alignment.top_center
+                ),
 
             # Styled DataTable
-            ft.Container(
-                content=data_table,
-                padding=5,
-                border_radius=10,
-                expand=True,
-            ),
-        ]
+                ft.Container(
+                    content=data_table,
+                    padding=ft.padding.only(bottom=40),
+                    border_radius=10,
+                    expand=True,
+                ),
+            ],
+            scroll=ft.ScrollMode.AUTO,  # Enables scrolling
+        ),
+        expand=True,  # Makes sure the container takes full space
     )
+

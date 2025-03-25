@@ -1,18 +1,20 @@
 import flet as ft
-from firebase_config import login
+from firebase_config import login, fetch_user_data
 
 def login_page(page: ft.Page):
     """Creates and returns the login page UI."""
     
     page.title = "Login - Powerpay Africa"
     #page.theme_mode = ft.ThemeMode.LIGHT  # ✅ Force light mode
-    page.bgcolor = ft.colors.WHITE        # ✅ Set background color to white
+    page.bgcolor = ft.Colors.WHITE        # ✅ Set background color to white
     # Powerpay Logo
     powerpay_img = ft.Image(src=f"/pplogo.png", width=200, height=200)
 
     # Input Fields
-    email_input = ft.TextField(label="Email", width=300, prefix_icon=ft.Icons.EMAIL, focused_border_color=ft.Colors.GREEN)
-    password_input = ft.TextField(label="Password", password=True, width=300, prefix_icon=ft.Icons.LOCK_ROUNDED, can_reveal_password=True, focused_border_color=ft.Colors.GREEN)
+    email_icon = ft.Icon(name=ft.Icons.EMAIL, color=ft.Colors.GREEN)
+    password_icon = ft.Icon(name=ft.Icons.LOCK_ROUNDED, color=ft.Colors.GREEN)
+    email_input = ft.TextField(label="Email", width=300, prefix_icon=email_icon, focused_border_color=ft.Colors.GREEN, color=ft.Colors.BLACK, label_style = ft.TextStyle(color=ft.colors.GREEN))
+    password_input = ft.TextField(label="Password", password=True, width=300, prefix_icon=password_icon, can_reveal_password=True, focused_border_color=ft.Colors.GREEN, color=ft.Colors.BLACK, label_style = ft.TextStyle(color=ft.colors.GREEN))
     error_message = ft.Text("", color="red")
 
     # Login Button
@@ -28,6 +30,8 @@ def login_page(page: ft.Page):
 
         if isinstance(user, dict) and "idToken" in user:
             page.session.set("user_id", user["localId"])
+            data = fetch_user_data(user["localId"]).get("photo_url")
+            page.session.set("profile_url", data)
             page.go("/")  # Navigate to dashboard
         else:
             error_message.value = "Invalid email or password"
@@ -66,7 +70,7 @@ def login_page(page: ft.Page):
         width=page.width,
         padding=10,
         border_radius=10,
-        bgcolor=ft.colors.WHITE,  # ✅ Ensure form background is also white
+        bgcolor=ft.Colors.WHITE,  # ✅ Ensure form background is also white
     )
 
     # ✅ Ensure full-page white background
@@ -77,6 +81,6 @@ def login_page(page: ft.Page):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             expand=True  # ✅ Fills the entire page
         ),
-        bgcolor=ft.colors.WHITE,  # ✅ Full page white background
+        bgcolor=ft.Colors.WHITE,  # ✅ Full page white background
         expand=True
     )
