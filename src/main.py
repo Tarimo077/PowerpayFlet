@@ -8,18 +8,19 @@ from user_profile import user_profile_page
 
 
 def main(page: ft.Page):
-    """Main function to render the Flet UI."""
+    """Main function to render the Flet UI.."""
     page.title = "Powerpay Africa"
-
-
-
     def handle_navigation(e):
         selected = e.control.selected_index
         if selected == 0:
             page.go("/")
-        elif selected ==1:
+        elif selected == 1:
             page.go("/devices")
         elif selected == 2:
+            page.launch_url("https://powerpayafrica.com/new-ticket/")
+        elif selected == 3:
+            page.launch_url("https://powerpayafrica.com")
+        elif selected == 4:
             page.go("/logout")
 
     def route_change(e: ft.RouteChangeEvent):
@@ -53,8 +54,10 @@ def main(page: ft.Page):
                     #ft.Divider(color=ft.Colors.WHITE, thickness=2),
                     ft.NavigationDrawerDestination(label="HOME", icon=ft.Icons.HOME),
                     ft.NavigationDrawerDestination(label="DEVICES", icon=ft.Icons.DEVELOPER_BOARD),
+                    ft.NavigationDrawerDestination(label="SUPPORT", icon=ft.Icons.CONTACT_SUPPORT_ROUNDED),
+                    ft.NavigationDrawerDestination(label="WEBSITE", icon=ft.Icons.IOS_SHARE),
                     ft.NavigationDrawerDestination(label="LOGOUT", icon=ft.Icons.LOGOUT),
-                    ft.Divider(color=ft.Colors.WHITE, thickness=1),
+                    ft.Container(ft.Divider(thickness=1), padding=ft.padding.only(left=20,right=20,top=10)),
                     ft.Container(
                         content=ft.Row(
                             [
@@ -63,30 +66,37 @@ def main(page: ft.Page):
                                         src=page.session.get("profile_url"),
                                         fit=ft.ImageFit.COVER  # Ensures the image fills the container
                                     ),
-                                    width=80,  
-                                    height=80,  
-                                    border_radius=ft.border_radius.all(80),  
+                                    width=100,  
+                                    height=100,  
+                                    border_radius=ft.border_radius.all(100),  
                                     clip_behavior=ft.ClipBehavior.HARD_EDGE,  
                                     alignment=ft.alignment.center,
                                     margin=ft.margin.only(right=10, bottom=5)
                                 ),
-                                ft.TextButton(
-                                    "Edit Profile",
-                                    on_click=edit_profile, 
-                                    icon=ft.Icons.EDIT_ROUNDED, 
-                                    icon_color=ft.Colors.WHITE,
-                                    style=ft.ButtonStyle(
-                                        bgcolor=ft.Colors.GREEN, 
-                                        color=ft.Colors.WHITE, 
-                                        alignment=ft.alignment.center
+                                ft.Column([
+                                    ft.Text(page.session.get("display_name"), size=18),
+                                    ft.TextButton(
+                                        "Edit Profile",
+                                        on_click=edit_profile, 
+                                        icon=ft.Icons.EDIT_ROUNDED, 
+                                        icon_color=ft.Colors.WHITE,
+                                        style=ft.ButtonStyle(
+                                            bgcolor=ft.Colors.GREEN, 
+                                            color=ft.Colors.WHITE, 
+                                            alignment=ft.alignment.center
+                                        )
                                     )
-                                )
+
+                                ])
                             ],
                             alignment=ft.MainAxisAlignment.CENTER  # Centers items in the row
-                                         ), alignment=ft.alignment.center, margin=ft.margin.only(top=30))
+                                         ), alignment=ft.alignment.center, margin=ft.margin.only(top=30)),
+                    ft.Container(ft.Divider(thickness=1), padding=ft.padding.only(left=20,right=20,top=10)),
+                    ft.Container(content=ft.Row([ft.Icon(name=ft.Icons.COPYRIGHT_ROUNDED), ft.Text(" 2025 Powerpay Africa. All Rights Reserved", italic=True, size=12)], alignment=ft.MainAxisAlignment.CENTER), padding=ft.padding.only(top=20), alignment=ft.alignment.center)
 
-                    #ft.Container(content=ft.Row([ft.Icon(name=ft.Icons.COPYRIGHT_ROUNDED, color=ft.Colors.WHITE), ft.Text(" 2025 Powerpay Africa. All Rights Reserved")]), alignment=ft.alignment.bottom_center, expand=True)
+                    
                 ],
+
             )
             
             menu_icon_btn = ft.IconButton(

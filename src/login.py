@@ -33,6 +33,9 @@ def login_page(page: ft.Page):
             data = fetch_user_data(user["localId"])
             page.session.set("profile_url", data["photo_url"])
             page.session.set("display_name", data["display_name"])
+            page.session.set("created_at", data["created_time"])
+            page.session.set("email", data["email"])
+            page.session.set("phone_number", data["phone_number"])
             page.go("/")  # Navigate to dashboard
         else:
             error_message.value = "Invalid email or password"
@@ -47,11 +50,13 @@ def login_page(page: ft.Page):
     login_button = ft.Container(
         content=ft.ElevatedButton(
             "Login", on_click=handle_login,
-            icon=ft.Icons.LOGIN_ROUNDED, 
+            icon=ft.Icons.LOGIN_ROUNDED,
+            style=ft.ButtonStyle(padding=15), 
             color=ft.Colors.WHITE, 
             bgcolor=ft.Colors.GREEN, 
             icon_color=ft.Colors.WHITE),
-            bgcolor=ft.Colors.WHITE
+            bgcolor=ft.Colors.WHITE,
+            margin=ft.margin.only(top=10)
     )
     # Centered Login Form
     login_form = ft.Container(
