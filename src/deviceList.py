@@ -58,7 +58,8 @@ def devices_list_page(page: ft.Page):
             scroll="auto",  # This makes the entire page scrollable if needed
             expand=True  # Allows the column to fill available space
         ),
-        expand=True  # Ensures scrolling works properly
+        expand=True,  # Ensures scrolling works properly
+        padding=ft.padding.only(bottom=30)
     )
     
     return devices_container

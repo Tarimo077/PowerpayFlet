@@ -30,8 +30,9 @@ def login_page(page: ft.Page):
 
         if isinstance(user, dict) and "idToken" in user:
             page.session.set("user_id", user["localId"])
-            data = fetch_user_data(user["localId"]).get("photo_url")
-            page.session.set("profile_url", data)
+            data = fetch_user_data(user["localId"])
+            page.session.set("profile_url", data["photo_url"])
+            page.session.set("display_name", data["display_name"])
             page.go("/")  # Navigate to dashboard
         else:
             error_message.value = "Invalid email or password"
