@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "powerpay-android",
+  "private_key_id": "7a4ec77e34eb9785f8a07ed28d3d3a61b1169ed8",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDMDAfAIEAKebZE\nw4jnYzyReUO9zV99AyNmUuW1WviAcUl2qEE7d45JjBMZdQWeEMl9Qn6q9/Y8gxAo\nP0JzoQaM/RdigWKVHtok1rsfWc4SvIYf+WN9QtQQ9Ny9AelAzClM3Jy2DlkAxvCj\nH3J2I3YLFnhZD6vn7iCcMJ+Bo2KjRdjcyfx38ZUXkBXFr1TxQSktVq5ZEnKwScyt\nUCgY3gCEZ9MXJtrssUIA6tFXxwKX1dwUijSQyDv+Lk/xPgk2RHPkplRUqBobkCS7\nxt2+ZAe4Kxi3dT/69HcrXbxZZtE2HWldTy44/mKoVQGiKQOjHJYZ5PjPnDFwX0Ko\ntBnPbFhrAgMBAAECggEAA7DIA1dKdQBmcSTHD8X55Zb7XttKm7qlVNpl7RmBtXrm\nITL+OLK3SobIWlvuuJt2LjJ0dRy0jSUqa5aGBxuaT2BFr3oCyij5k5Bo0ar9vi+3\nyrr2qDrOywBtIiAkjA/lQ1YZdHWENcT597aDmh9LmilESyedWZgkHvh+o3onGigK\nsVDWnNL0bk5hsGPAJTgLyiSF6Qa2JagpQpBnMkLq4zlS6NRbxED+8cULPZJ82lUn\nb7nMJVih+GC79483gOj1rpOxeAP3eatTDAj2IqNTd4x/AkJ1h9HWkZQT3ztXUGPq\nv87p/KwO4+aS1W1+6hTcWkCOydpUVvCStHeTysk5uQKBgQDgpckjQl9nW4qrJ3Fj\nh0iytWk4eaNtS/wxlPENwiwszTt3czewdXnwUPxaIDMMhaj4xj/CwVtg6yy52dF7\nAVO3cFCKJ3UYguQ20sr8CnI3QbUIMVgpeLdHxZvGg+HIwucurwmqNo88K1nLP12z\nQ8N7Yp9WwmKkJCrzhQKeuGm9lwKBgQDohjnD+jjW277iao5FDTB8ZgyF8Gyr5qGc\nSQMQDqnN0NC1EcRGcpRfLcSagMYqNZFDDpsEJJplI9OjKgIu7Jeafq8j8WigNZJ7\nFtTEYSQwURF+L/5DJ3pFfSVjBblIB0qj1AmLuKodl27DPF6RwALdPeqjOH6vIk/6\nqUrAG+J+TQKBgGlzCK5HWpcerkHW+u+4MhTI+QIsft0wHMp9WoWVzryc/bv9Vne7\nPSjkKwB3Ot824nEcRhO6RZWB7vWyXBV8MvrZesTO7rU5w7xESEn08VYkvsCAwRx+\ncLH8/Tk68MIXUwNj4IqIn8Wjp7uzG92pAlqpmZfVGQ5pd8vldKxibigzAoGAf6Ke\nNss1RAtfXl1rNtAkm0RQ/3yXykxQzb7uJXRHFSjYR2w3NwxSEWTIFJ83J5g74nkz\n8jQ9Y+Mkmt3GUQehuDZt4Ob0rWx6uYIwzJMeED+PwJqLkUUsQtSNHyvXJoiKGh+c\nFcwJ5TBoplaO+qZRbCw+jdXHBE9rY4Zl98nWq8kCgYEAn0QIeu1lGOslp4pLambC\nX1qmMfEseWQs2qtToUDkBb+cEpiF0nWfZiFOND1FNshrc/qn3bSib8MJXQNHwJfF\n5HU8JTmCpzGy4eGvVkQqEAp5zCgvWsqedR5h/OSFVPGa1+g06AonZ/SUJIj3CWfN\nV5GxXXliW6cPOGcblY12ZNI=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-xti2i@powerpay-android.iam.gserviceaccount.com",
+  "client_id": "117271748714394155195",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xti2i%40powerpay-android.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
