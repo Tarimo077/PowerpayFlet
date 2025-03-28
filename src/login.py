@@ -8,7 +8,7 @@ def login_page(page: ft.Page):
     #page.theme_mode = ft.ThemeMode.LIGHT  # ✅ Force light mode
     page.bgcolor = ft.Colors.WHITE        # ✅ Set background color to white
     # Powerpay Logo
-    powerpay_img = ft.Image(src=f"/pplogo.png", width=200, height=200)
+    powerpay_img = ft.Image(src=f"/icon.png", width=200, height=200)
 
     # Input Fields
     email_icon = ft.Icon(name=ft.Icons.EMAIL, color=ft.Colors.GREEN)

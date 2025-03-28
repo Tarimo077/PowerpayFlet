@@ -3,7 +3,6 @@ from login import login_page
 from home import home_page
 from deviceList import devices_list_page
 from deviceData import device_data_page
-from firebase_config import fetch_user_data
 from user_profile import user_profile_page
 
 
