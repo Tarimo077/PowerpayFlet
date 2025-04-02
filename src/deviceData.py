@@ -3,7 +3,6 @@ import requests
 from requests.auth import HTTPBasicAuth
 import datetime
 import pandas as pd
-import time
 
 # Mapping for dropdown values to minutes
 value_map = {

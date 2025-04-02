@@ -27,11 +27,11 @@ firebaseConfig = {
 # Initialize Pyrebase (for Authentication)
 firebase = pyrebase.initialize_app(firebaseConfig)
 # Initialize Firebase Admin SDK (for Firestore and Storage)
-if not firebase_admin._apps:
-    cred = credentials.Certificate(CREDENTIALS_PATH)
-    firebase_admin.initialize_app(cred, {
-        'storageBucket': 'powerpay-android.appspot.com'  # Make sure this is correct
-    })
+#if not firebase_admin._apps:
+#    cred = credentials.Certificate(CREDENTIALS_PATH)
+#    firebase_admin.initialize_app(cred, {
+#        'storageBucket': 'powerpay-android.appspot.com'  # Make sure this is correct
+#    })
 auth = firebase.auth()
 # Firebase Storage client
 firebase_storage = storage.bucket(name="powerpay-android.appspot.com")
