@@ -39,7 +39,7 @@ def fetch_data_index(deviceID, endpoint, time_range):
 def device_data_page(page: ft.Page, deviceID):
     data = fetch_data_index(deviceID, "deviceDataDjangoo", "9999999")
     if not data or (data["runtime"] == 0 and not data["deviceMealCounts"] and not data["rawData"]):
-        return ft.Text("No data available.", size=16, color=ft.colors.RED)
+        return ft.Text("No data available.", size=16, color=ft.Colors.RED)
 
     # Function to format timestamps
     def format_timestamp(timestamp):
@@ -70,7 +70,7 @@ def device_data_page(page: ft.Page, deviceID):
         meal_table = ft.DataTable(
             columns=[ft.DataColumn(ft.Text(col)) for col in df.columns],
             rows=[],
-            border=ft.border.all(1, ft.colors.GREY_300),
+            border=ft.border.all(1, ft.Colors.GREY_300),
             heading_row_color=ft.Colors.GREEN,
             column_spacing=5,
             divider_thickness=1, 
@@ -222,7 +222,7 @@ def device_data_page(page: ft.Page, deviceID):
     switchMessage = f"Turn off {deviceID}" if data["status"] else f"Turn On {deviceID}"
     statusSwitch = ft.Switch(
         label=switchMessage, 
-        active_color=ft.colors.GREY_300, 
+        active_color=ft.Colors.GREY_300, 
         active_track_color=ft.Colors.GREEN, 
         value=data["status"], 
         label_position=ft.LabelPosition.LEFT,

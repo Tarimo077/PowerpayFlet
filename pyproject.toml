@@ -5,37 +5,29 @@ description = ""
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
-    { name = "Flet developer", email = "you@example.com" }
+    { name = "JEFF TARIMO", email = "tarimojeff@gmail.com" }
 ]
 dependencies = [
-  "flet==0.27.6"
+    "flet==0.27.6",
+    "firebase_admin==6.7.0",
+    "pandas==2.2.3",
+    "requests==2.32.3"
 ]
 
 [tool.flet]
-# org name in reverse domain name notation, e.g. "com.mycompany".
-# Combined with project.name to build bundle ID for iOS and Android apps
-org = "com.mycompany"
-# assets directory
+org = "com.powerpayafrica"
 assets = ["assets"]
-
-# project display name that is used as an app title on Android and iOS home screens,
-# shown in window titles and about app dialogs on desktop.
 product = "Powerpay Africa"
-
-# company name to display in about app dialogs
 company = "Powerpay Africa"
-
-# copyright text to display in about app dialogs
 copyright = "Copyright (C) 2025 by Powerpay Africa"
 
-# App main entry point
 [tool.flet.app]
 path = "src"
 
 # Permissions
 permissions = ["photo_library"]
 
-[tool.flet.android.permission] # --android-permissions
+[tool.flet.android.permission]
 "android.permission.READ_EXTERNAL_STORAGE" = true
 
 [tool.flet.pack]
@@ -43,7 +35,7 @@ android_permissions = ["READ_EXTERNAL_STORAGE"]
 
 [tool.uv]
 dev-dependencies = [
-    "flet[all]==0.27.6",
+    "flet[all]==0.27.6"
 ]
 
 [tool.poetry]

@@ -8,21 +8,22 @@ def login_page(page: ft.Page):
     #page.theme_mode = ft.ThemeMode.LIGHT  # ✅ Force light mode
     page.bgcolor = ft.Colors.WHITE        # ✅ Set background color to white
     # Powerpay Logo
-    powerpay_img = ft.Image(src=f"/icon.png", width=200, height=200)
+    powerpay_img = ft.Image(src=f"/pplogo.png", width=300, height=300)
 
     # Input Fields
     email_icon = ft.Icon(name=ft.Icons.EMAIL, color=ft.Colors.GREEN)
     password_icon = ft.Icon(name=ft.Icons.LOCK_ROUNDED, color=ft.Colors.GREEN)
-    email_input = ft.TextField(label="Email", width=300, prefix_icon=email_icon, focused_border_color=ft.Colors.GREEN, color=ft.Colors.BLACK, label_style = ft.TextStyle(color=ft.colors.GREEN))
-    password_input = ft.TextField(label="Password", password=True, width=300, prefix_icon=password_icon, can_reveal_password=True, focused_border_color=ft.Colors.GREEN, color=ft.Colors.BLACK, label_style = ft.TextStyle(color=ft.colors.GREEN))
+    email_input = ft.TextField(label="Email", width=300, prefix_icon=email_icon, focused_border_color=ft.Colors.GREEN, color=ft.Colors.BLACK, label_style = ft.TextStyle(color=ft.Colors.GREEN))
+    password_input = ft.TextField(label="Password", password=True, width=300, prefix_icon=password_icon, can_reveal_password=True, focused_border_color=ft.Colors.GREEN, color=ft.Colors.BLACK, label_style = ft.TextStyle(color=ft.Colors.GREEN))
     error_message = ft.Text("", color="red")
 
     # Login Button
     def handle_login(e):
         error_message.value = ""
-        loading_animation = ft.Lottie(src=f"loading.lottie")
-        login_button.content.bgcolor = ft.Colors.WHITE
-        login_button.content = loading_animation
+        #loading_animation = ft.Lottie(src=f"loading.lottie")
+        #login_button.content.bgcolor = ft.Colors.WHITE
+        #login_button.content = loading_animation
+        login_button.visible = False
         page.update()
         email = email_input.value
         password = password_input.value
