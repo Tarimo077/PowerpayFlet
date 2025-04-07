@@ -8,8 +8,13 @@ from user_profile import user_profile_page
 
 def main(page: ft.Page):
     """Main function to render the Flet UI.."""
+    progress_ring = ft.Container(ft.ProgressRing(color=ft.Colors.GREEN), alignment=ft.alignment.center, expand=True, visible=False)
     page.title = "Powerpay Africa"
+    #page.theme_mode = ft.ThemeMode.LIGHT
+    page.add(progress_ring)
     def handle_navigation(e):
+        progress_ring.visible = True
+        page.update()
         selected = e.control.selected_index
         if selected == 0:
             page.go("/")
@@ -21,9 +26,13 @@ def main(page: ft.Page):
             page.launch_url("https://powerpayafrica.com")
         elif selected == 4:
             page.go("/logout")
+        progress_ring.visible = False
+        page.update()
 
     def route_change(e: ft.RouteChangeEvent):
         """Handles route changes dynamically."""
+        page.theme_mode = ft.ThemeMode.SYSTEM
+        page.update()
 
         page.views.clear()
         def insert_img():
@@ -125,10 +134,11 @@ def main(page: ft.Page):
 
             insert_img()
             # If logged in, show the home page
+
             page.views.append(ft.View("/", controls=[home_page(page)], appbar=app_bar, drawer=drawer))
 
         elif page.route == "/login":
-            page.views.append(ft.View("/login", controls=[login_page(page)]))
+            page.views.append(ft.View("/login", controls=[ft.SafeArea(login_page(page), expand=True, top=False, bottom=False)]))
         elif page.route == "/logout":
             page.session.clear()
             page.go('/login')
@@ -138,22 +148,25 @@ def main(page: ft.Page):
                 page.go("/login")  # Redirect to login page
                 return
             insert_img()
-            page.views.append(ft.View("/devices", controls=[devices_list_page(page)],  appbar=app_bar, drawer=drawer))
+            drawer.selected_index = 1
+            page.views.append(ft.View("/devices", controls=[ft.SafeArea(devices_list_page(page), expand=True, top=False, bottom=False)],  appbar=app_bar, drawer=drawer))
         elif page.route.startswith("/device/"):
             # Check if user is logged in (session has "user_id")
             if not page.session.get("user_id"):
                 page.go("/login")  # Redirect to login page
                 return
             insert_img()
+            drawer.selected_index = 1
             deviceID = page.route.split("/")[-1]
             app_bar.title = ft.Text(f"{deviceID} data", color=ft.Colors.WHITE)
-            page.views.append(ft.View(f"/device/{deviceID}", controls=[device_data_page(page, deviceID)], appbar=app_bar, drawer=drawer))
+            page.views.append(ft.View(f"/device/{deviceID}", controls=[ft.SafeArea(device_data_page(page, deviceID), expand=True, top=False, bottom=False)], appbar=app_bar, drawer=drawer))
         elif page.route == "/edit_profile":
             # Check if user is logged in (session has "user_id")
             if not page.session.get("user_id"):
                 page.go("/login")  # Redirect to login page
                 return
-            page.views.append(ft.View("/edit_profile", controls=[user_profile_page(page)], appbar=app_bar, drawer=drawer))
+            drawer.selected_index = None
+            page.views.append(ft.View("/edit_profile", controls=[ft.SafeArea(user_profile_page(page), expand=True, top=False, bottom=False)], appbar=app_bar, drawer=drawer))
 
         page.update()
 

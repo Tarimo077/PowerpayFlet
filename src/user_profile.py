@@ -1,14 +1,21 @@
 import flet as ft
+import datetime
 import os
 import time
 from firebase_config import fetch_user_data, upload_image, save_user_data, delete_old_image
 
 def user_profile_page(page: ft.Page):
+    page.title = "Powerpay Africa: My Profile"
+    page.update()
     selected_file_path = None  # Store selected file path
-
+    progress_ring = ft.Container(ft.ProgressRing(color=ft.Colors.GREEN), alignment=ft.alignment.center, expand=True, visible=False)
+    # Function to format timestamps
+    def format_timestamp(timestamp):
+        return datetime.datetime.fromisoformat(str(timestamp)).strftime("%Y-%m-%d %H:%M:%S")
     def confirm_toggle(e):
         nonlocal selected_file_path
         page.close(dlg_confirm)
+        progress_ring.visible = True
         page.update()
 
         user_info = fetch_user_data(page.session.get("user_id"))
@@ -45,7 +52,8 @@ def user_profile_page(page: ft.Page):
         page.session.set("display_name", user_info["display_name"])
         page.session.set("email", user_info["email"])
         page.session.set("phone_number", user_info["phone_number"])
-        profile_img.src = user_info["display_name"]
+        progress_ring.visible = False
+        page.open(ft.SnackBar(ft.Text("Profile Updated", text_align=ft.TextAlign.CENTER), bgcolor=ft.Colors.GREEN))
         page.update()
 
     def pick_file_result(e: ft.FilePickerResultEvent):
@@ -89,6 +97,7 @@ def user_profile_page(page: ft.Page):
     email_input = ft.TextField(label="Email", width=180, focused_border_color=ft.Colors.GREEN, label_style=ft.TextStyle(color=ft.Colors.GREEN))
     display_name_input = ft.TextField(label="Display Name", width=180, focused_border_color=ft.Colors.GREEN, label_style=ft.TextStyle(color=ft.Colors.GREEN))
     phone_number_input = ft.TextField(label="Phone Number", width=180, focused_border_color=ft.Colors.GREEN, label_style=ft.TextStyle(color=ft.Colors.GREEN))
+    created_text = ft.Container(ft.Text(f"Created at:\n {format_timestamp(page.session.get('created_at'))}", size=18), width=180)
 
     # Populate fields from session
     email_input.value = page.session.get("email")
@@ -97,10 +106,11 @@ def user_profile_page(page: ft.Page):
 
     details_container = ft.Container(
         content=ft.Column([
-            ft.Row([display_name_input, email_input], alignment=ft.MainAxisAlignment.CENTER),
-            ft.Row([phone_number_input], alignment=ft.MainAxisAlignment.CENTER),
-        ])
+            ft.Row([display_name_input, email_input], alignment=ft.MainAxisAlignment.SPACE_AROUND),
+            ft.Row([phone_number_input, created_text], alignment=ft.MainAxisAlignment.SPACE_AROUND),
+        ]), margin=ft.margin.only(top=20)
     )
+    
 
     update_button = ft.Container(
         content=ft.TextButton(
@@ -121,11 +131,23 @@ def user_profile_page(page: ft.Page):
         actions=[ft.TextButton("Yes", on_click=confirm_toggle), ft.TextButton("No", on_click=lambda _: page.close(dlg_confirm))],
     )
 
-    return ft.Container(
+    return ft.Stack([ft.Container(
         content=ft.Column([
             ft.Row([ft.Icon(name=ft.Icons.PERSON_PIN_ROUNDED, color=ft.Colors.GREEN, size=24), ft.Text("My Profile", size=24)]),
             profile_pic_container,
+            ft.Container(
+                ft.Row(
+                    [
+                        ft.Container(ft.Divider(thickness=2, color=ft.Colors.GREEN), expand=True),
+                        ft.Text("My Information", size=20, weight="bold"),
+                        ft.Container(ft.Divider(thickness=2, color=ft.Colors.GREEN), expand=True),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+                margin=ft.margin.symmetric(vertical=10, horizontal=5),
+            ),
             details_container,
             update_button,
-        ], alignment=ft.MainAxisAlignment.CENTER)
-    )
+        ], alignment=ft.MainAxisAlignment.START)
+    ), progress_ring], expand=True)

@@ -60,40 +60,15 @@ def fetch_and_process_data(devs, range):
 
 def home_page(page: ft.Page):
     """Returns the home page UI components."""
+    progress_ring = ft.Container(ft.ProgressRing(color=ft.Colors.GREEN), alignment=ft.alignment.center, expand=True, visible=False)
+    page.title = "Powerpay Africa: Home"
     user_uid = page.session.get("user_id")
     doc_dic = fetch_user_data(user_uid)
     devices = doc_dic.get("devices", [])
-    def handle_navigation(e):
-        selected = e.control.selected_index
-        if selected == 0:
-            page.go("/")
-        elif selected == 2:
-            page.go("/logout")
-    # Page Configuration
-    page.title = "Powerpay Africa"
-    page.drawer = ft.NavigationDrawer(
-                on_change=handle_navigation,
-                controls=[
-                    ft.NavigationDrawerDestination(label="HOME", icon=ft.Icons.HOME),
-                    ft.NavigationDrawerDestination(label="DEVICES", icon=ft.Icons.DEVELOPER_BOARD),
-                    ft.NavigationDrawerDestination(label="LOGOUT", icon=ft.Icons.LOGOUT),
-                ],
-            )
-
-    menu_icon_btn = ft.IconButton(
-                icon=ft.Icons.MENU,
-                on_click=lambda e: setattr(page.drawer, "open", True),
-            )
-
-    page.appbar = ft.AppBar(
-                title=ft.Text("Powerpay Africa"),
-                center_title=True,
-                bgcolor=ft.Colors.GREEN,
-                leading=menu_icon_btn,
-            )
     page.update()
     def dropdown_changed(e):
         """Handle dropdown selection change."""
+        progress_ring.visible = True
         kwh_value.value = "Refreshing..."
         runtime_value.value = "Refreshing..."
         energy_cost_value.value = "Refreshing..."
@@ -115,7 +90,7 @@ def home_page(page: ft.Page):
             runtime_value.value = f"{round(runtime, 1)} hours"
             energy_cost_value.value = f"KSH. {round((totalKwh * 23.0), 1)}"
             emissions_value.value = f"{round((totalKwh * 0.4999 * 0.28), 2)} kg CO₂"
-            meal_count_value.value = f"{sum(meal_count["count"] for meal_count in meal_counts.values())} meals"
+            meal_count_value.value = f"{sum(meal_count['count'] for meal_count in meal_counts.values())} meals"
 
         # Recreate DataTable with updated rows
         data_table.content = ft.DataTable(
@@ -130,6 +105,7 @@ def home_page(page: ft.Page):
             divider_thickness=1,
             expand=True,
         )
+        progress_ring.visible = False
         page.update()
 
     # Fetch initial data
@@ -153,7 +129,7 @@ def home_page(page: ft.Page):
     energy_cost_value = ft.Text(f"KSH. {round((totalKwh * 23.0), 1)}" if totalKwh else "N/A", size=18, weight="bold", color="white")
     emissions_value = ft.Text(f"{round((totalKwh * 0.4999 * 0.28), 2)} kg CO₂" if totalKwh else "N/A", size=18, weight="bold", color="white")
     device_count_value = ft.Text(f"{len(devices)} devices" if devices else "N/A", size=18, weight="bold", color="white")
-    meal_count_value = ft.Text(f"{sum(meal_count["count"] for meal_count in meal_counts.values())} meals" if meal_counts else "N/A", size=18, weight="bold", color="white")
+    meal_count_value = ft.Text(f"{sum(meal_count['count'] for meal_count in meal_counts.values())} meals" if meal_counts else "N/A", size=18, weight="bold", color="white")
     # Styled Cards with Icons
     def create_card(icon, text, value, color):
         return ft.Card(
@@ -227,7 +203,7 @@ def home_page(page: ft.Page):
         )
 
     # Return UI elements instead of modifying page directly
-    return ft.Container(
+    return ft.Stack([ft.SafeArea(
         content=ft.Column(
             [
             # Time range selection dropdown
@@ -255,7 +231,7 @@ def home_page(page: ft.Page):
             # Styled DataTable
                 ft.Container(
                     content=data_table,
-                    padding=ft.padding.only(bottom=40),
+                    padding=ft.padding.only(bottom=10),
                     border_radius=10,
                     expand=True,
                 ),
@@ -263,5 +239,5 @@ def home_page(page: ft.Page):
             scroll=ft.ScrollMode.AUTO,  # Enables scrolling
         ),
         expand=True,  # Makes sure the container takes full space
-    )
+    ), progress_ring], expand=True, top=False, bottom=False)
 

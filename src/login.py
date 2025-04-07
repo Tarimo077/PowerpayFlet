@@ -3,18 +3,20 @@ from firebase_config import login, fetch_user_data
 
 def login_page(page: ft.Page):
     """Creates and returns the login page UI."""
-    
+    progress_ring = ft.Container(ft.ProgressRing(color=ft.Colors.GREEN), alignment=ft.alignment.center, expand=True, visible=False)
     page.title = "Login - Powerpay Africa"
-    #page.theme_mode = ft.ThemeMode.LIGHT  # ✅ Force light mode
+    page.theme_mode = ft.ThemeMode.LIGHT  # ✅ Force light mode
     page.bgcolor = ft.Colors.WHITE        # ✅ Set background color to white
+    page.update()
+    print(page.bgcolor)
     # Powerpay Logo
-    powerpay_img = ft.Image(src=f"/pplogo.png", width=300, height=300)
+    powerpay_img = ft.Image(src=f"/pplogo.png", width=350, height=350)
 
     # Input Fields
     email_icon = ft.Icon(name=ft.Icons.EMAIL, color=ft.Colors.GREEN)
     password_icon = ft.Icon(name=ft.Icons.LOCK_ROUNDED, color=ft.Colors.GREEN)
-    email_input = ft.TextField(label="Email", width=300, prefix_icon=email_icon, focused_border_color=ft.Colors.GREEN, color=ft.Colors.BLACK, label_style = ft.TextStyle(color=ft.Colors.GREEN))
-    password_input = ft.TextField(label="Password", password=True, width=300, prefix_icon=password_icon, can_reveal_password=True, focused_border_color=ft.Colors.GREEN, color=ft.Colors.BLACK, label_style = ft.TextStyle(color=ft.Colors.GREEN))
+    email_input = ft.TextField(label="Email", width=300, prefix_icon=email_icon, focused_border_color=ft.Colors.GREEN, label_style = ft.TextStyle(color=ft.Colors.GREEN))
+    password_input = ft.TextField(label="Password", password=True, width=300, prefix_icon=password_icon, can_reveal_password=True, focused_border_color=ft.Colors.GREEN, label_style = ft.TextStyle(color=ft.Colors.GREEN))
     error_message = ft.Text("", color="red")
 
     # Login Button
@@ -24,28 +26,27 @@ def login_page(page: ft.Page):
         #login_button.content.bgcolor = ft.Colors.WHITE
         #login_button.content = loading_animation
         login_button.visible = False
+        progress_ring.visible = True
         page.update()
         email = email_input.value
         password = password_input.value
         user = login(email, password)
 
         if isinstance(user, dict) and "idToken" in user:
+
             page.session.set("user_id", user["localId"])
             data = fetch_user_data(user["localId"])
             page.session.set("profile_url", data["photo_url"])
             page.session.set("display_name", data["display_name"])
             page.session.set("created_at", data["created_time"])
+            print(data["created_time"])
             page.session.set("email", data["email"])
             page.session.set("phone_number", data["phone_number"])
             page.go("/")  # Navigate to dashboard
         else:
             error_message.value = "Invalid email or password"
-            login_button.content = ft.ElevatedButton(
-                "Login", on_click=handle_login,
-                icon=ft.Icons.LOGIN_ROUNDED, 
-                color=ft.Colors.WHITE, 
-                bgcolor=ft.Colors.GREEN, 
-                icon_color=ft.Colors.WHITE)
+            login_button.visible = True
+            progress_ring.visible = False
             page.update()
 
     login_button = ft.Container(
@@ -56,7 +57,7 @@ def login_page(page: ft.Page):
             color=ft.Colors.WHITE, 
             bgcolor=ft.Colors.GREEN, 
             icon_color=ft.Colors.WHITE),
-            bgcolor=ft.Colors.WHITE,
+            #bgcolor=ft.Colors.WHITE,
             margin=ft.margin.only(top=10)
     )
     # Centered Login Form
@@ -77,11 +78,11 @@ def login_page(page: ft.Page):
         width=page.width,
         padding=10,
         border_radius=10,
-        bgcolor=ft.Colors.WHITE,  # ✅ Ensure form background is also white
+        #bgcolor=ft.Colors.WHITE,  # ✅ Ensure form background is also white
     )
 
     # ✅ Ensure full-page white background
-    return ft.Container(
+    return ft.Stack([ft.Container(
         content=ft.Column(
             [login_form],
             alignment=ft.MainAxisAlignment.CENTER,
@@ -90,4 +91,5 @@ def login_page(page: ft.Page):
         ),
         bgcolor=ft.Colors.WHITE,  # ✅ Full page white background
         expand=True
-    )
+    ) , progress_ring
+    ], expand=True)

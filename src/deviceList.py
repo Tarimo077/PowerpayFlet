@@ -2,10 +2,16 @@ import flet as ft
 from firebase_config import fetch_user_data
 
 def devices_list_page(page: ft.Page):
+    page.title = "Powerpay Africa: Device List"
+    page.update()
+    progress_ring = ft.Container(ft.ProgressRing(color=ft.Colors.GREEN), alignment=ft.alignment.center, expand=True, visible=False)
     user_uid = page.session.get("user_id")
-    print(f"User ID: {user_uid}")
     doc_dic = fetch_user_data(user_uid)
     devices = doc_dic.get("devices", [])
+    def handle_click(e, d):
+        progress_ring.visible = True  # or any control you want to show
+        page.update()  # force update to reflect the change before navigating
+        page.go(f"/device/{d}")
     
     # List container with scrolling
     device_list_view = ft.ListView(
@@ -29,7 +35,7 @@ def devices_list_page(page: ft.Page):
                             icon=ft.Icons.KEYBOARD_DOUBLE_ARROW_RIGHT,
                             icon_color=ft.Colors.GREEN,
                             highlight_color=ft.Colors.ORANGE,
-                            on_click=lambda e, d=device: page.go(f"/device/{d}"),  # Fix lambda scope issue
+                            on_click=lambda e, d=device: handle_click(e, d),  # Fix lambda scope issue
                         ),
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,  
@@ -43,7 +49,7 @@ def devices_list_page(page: ft.Page):
         )
 
     # Wrapping everything inside a scrollable column
-    devices_container = ft.Container(
+    devices_container = ft.Stack([ft.Container(
         content=ft.Column(
             [
                 ft.Row(
@@ -60,6 +66,6 @@ def devices_list_page(page: ft.Page):
         ),
         expand=True,  # Ensures scrolling works properly
         padding=ft.padding.only(bottom=30)
-    )
+    ), progress_ring], expand=True)
     
     return devices_container

@@ -37,6 +37,9 @@ def fetch_data_index(deviceID, endpoint, time_range):
 
 
 def device_data_page(page: ft.Page, deviceID):
+    progress_ring = ft.Container(ft.ProgressRing(color=ft.Colors.GREEN), alignment=ft.alignment.center, expand=True, visible=False)
+    page.title = f"Powerpay Africa: {deviceID} data"
+    page.update()
     data = fetch_data_index(deviceID, "deviceDataDjangoo", "9999999")
     if not data or (data["runtime"] == 0 and not data["deviceMealCounts"] and not data["rawData"]):
         return ft.Text("No data available.", size=16, color=ft.Colors.RED)
@@ -52,7 +55,7 @@ def device_data_page(page: ft.Page, deviceID):
         df = pd.DataFrame(meal_durations)
 
         if df.empty:
-            df = pd.DataFrame([{"Start Time": "No Meal Data", "Duration": "-", "End Time": "-", "Total kWh": "-"}])
+            df = pd.DataFrame([{"Start Time": "No Meal Data", "Duration": "N/A", "End Time": "N/A", "Total kWh": "N/A"}])
         else:
             df["From"] = df["startTime"].apply(format_timestamp)
             df["Duration"] = df["mealDuration"].apply(lambda x: f"{round(x / 60, 1)} min")
@@ -116,16 +119,13 @@ def device_data_page(page: ft.Page, deviceID):
                 next_button,
             ],
             alignment=ft.MainAxisAlignment.CENTER,
-            spacing=10
-        ), padding=ft.padding.only(bottom=30))
+            spacing=10,
+            expand=True,
+        ), padding=ft.padding.only(bottom=30), expand=True)
 
         update_table()
 
-
-        return ft.Column(
-            [meal_table, pagination_controls],
-            spacing=10
-        )
+        return ft.Container(meal_table, width=page.width, expand=True), pagination_controls
 
 
     def dropdown_changed(e):
@@ -133,6 +133,7 @@ def device_data_page(page: ft.Page, deviceID):
         for val in [kwh_value, runtime_value, energy_cost_value, emissions_value, meal_count_value]:
             val.value = "Refreshing..."
         
+        progress_ring.visible = True
         page.update()  # Update UI once
 
         value = value_map.get(dropdown.value, "9999999")
@@ -147,8 +148,10 @@ def device_data_page(page: ft.Page, deviceID):
             emissions_value.value = "N/A"
             meal_count_value.value = "N/A"
             
-            meal_table.controls.clear()
-            meal_table.controls.append(generate_meal_table(new_data["mealsWithDurations"]))
+            #meal_table.content.clear()
+            table_widget, pagination = generate_meal_table(new_data["mealsWithDurations"])
+            page_controls.content = pagination
+            meal_table.content = table_widget
         else:
             # Update values with actual data
             totalKwh = new_data.get("sumKwh", 0)
@@ -159,15 +162,16 @@ def device_data_page(page: ft.Page, deviceID):
             runtime_value.value = f"{round(runtime, 1)} hours"
             energy_cost_value.value = f"KSH. {round((totalKwh * 23.0), 1)}"
             emissions_value.value = f"{round((totalKwh * 0.4999 * 0.28), 2)} kg CO₂"
-            meal_count_value.value = f"{str(meal_counts[deviceID]["count"])} meals"
+            meal_count_value.value = f"{str(meal_counts[deviceID]['count'])} meals"
             
-            
-            meal_table.controls.clear()
             if "mealsWithDurations" in new_data:
-                meal_table.controls.append(generate_meal_table(new_data["mealsWithDurations"]))
+                table_widget, pagination = generate_meal_table(new_data["mealsWithDurations"])
+                page_controls.content = pagination
+                meal_table.content = table_widget
+
             
             #no_data_text.value = ""  # Hide "No data available" if there is data
-
+        progress_ring.visible = False
         page.update()  # Perform final UI update
 
 
@@ -212,6 +216,7 @@ def device_data_page(page: ft.Page, deviceID):
                 switchMessage = f"Turn off {new_device_id}" if new_status else f"Turn On {new_device_id}"
                 statusSwitch.value = new_status
                 statusSwitch.label = switchMessage
+                page.open(ft.SnackBar(ft.Text(f"{new_device_id} turned on" if new_status else f"{new_device_id} turned off", text_align=ft.TextAlign.CENTER), bgcolor=ft.Colors.GREEN if new_status else ft.Colors.RED))
                 page.update()
             else:
                 print("Error:", response_data)
@@ -247,7 +252,7 @@ def device_data_page(page: ft.Page, deviceID):
     runtime_value = ft.Text(f"{round(runtime, 1)} hours", size=18, weight="bold", color="white")
     energy_cost_value = ft.Text(f"KSH. {round((totalKwh * 23.0), 1)}", size=18, weight="bold", color="white")
     emissions_value = ft.Text(f"{round((totalKwh * 0.4999 * 0.28), 2)} kg CO₂", size=18, weight="bold", color="white")
-    meal_count_value = ft.Text(f"{str(meal_counts[deviceID]["count"])} meals", size=18, weight="bold", color="white")
+    meal_count_value = ft.Text(f"{str(meal_counts[deviceID]['count'])} meals", size=18, weight="bold", color="white")
     device_serial_value = ft.Text(f"{deviceID}", size=18, weight="bold", color="white")
 
     def create_card(icon, text, value, color):
@@ -269,17 +274,17 @@ def device_data_page(page: ft.Page, deviceID):
             )
         )
 
-    kwh_card = create_card(ft.icons.BOLT, "Total Energy", kwh_value, "#FF5733")
-    runtime_card = create_card(ft.icons.TIMER, "Total Runtime", runtime_value, "#33FF57")
-    energy_cost_card = create_card(ft.icons.ATTACH_MONEY, "Energy Cost", energy_cost_value, "#3380FF")
-    emissions_card = create_card(ft.icons.CLOUD, "CO₂ Emissions", emissions_value, "#FF33A8")
+    kwh_card = create_card(ft.Icons.BOLT, "Total Energy", kwh_value, "#FF5733")
+    runtime_card = create_card(ft.Icons.TIMER, "Total Runtime", runtime_value, "#33FF57")
+    energy_cost_card = create_card(ft.Icons.ATTACH_MONEY, "Energy Cost", energy_cost_value, "#3380FF")
+    emissions_card = create_card(ft.Icons.CLOUD, "CO₂ Emissions", emissions_value, "#FF33A8")
     meal_count_card = create_card(ft.Icons.FOOD_BANK_ROUNDED, "Total Meals", meal_count_value, "#900C3F")
     device_card = create_card(ft.Icons.DEVELOPER_BOARD_ROUNDED, "Serial Number", device_serial_value, "#B51BFD")
 
-    meal_table = generate_meal_table(data["mealsWithDurations"])
+    meal_table, page_controls = generate_meal_table(data["mealsWithDurations"])
     
     # Return UI elements instead of modifying page directly
-    return ft.Container(
+    return ft.Stack([ft.Container(
     content=ft.Column(
         [
             # Time range selection dropdown
@@ -302,20 +307,15 @@ def device_data_page(page: ft.Page, deviceID):
             ),
 
             # Styled DataTable with Heading
-            ft.Container(
-            content=ft.Column(
-            [
-                ft.Text("Cooking Events", size=20, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
-                meal_table
-            ],
-                spacing=10,  # Adds spacing between heading and table
-                alignment=ft.MainAxisAlignment.START,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
-            ),
-            padding=10,
-            border_radius=5,
-            alignment=ft.alignment.top_center
-            ),
+            ft.Container(content=ft.Text(
+                "Cooking Events", 
+                size=20, 
+                weight=ft.FontWeight.BOLD, 
+                text_align=ft.TextAlign.CENTER),
+                alignment=ft.alignment.center),
+
+            meal_table,
+            page_controls
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         spacing=5,
@@ -323,5 +323,5 @@ def device_data_page(page: ft.Page, deviceID):
         expand=True,  # Allows column to take available space and scroll
     ),
     expand=True  # Ensures the container also expands to allow scrolling
-)
+), progress_ring], expand=True)
 
